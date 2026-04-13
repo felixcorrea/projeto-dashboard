@@ -4,14 +4,15 @@ const path = require("path");
 const db = require("./database/db");
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 app.post("/api/respostas", (req, res) => {
-    console.log("POST RECEBIDO"); 
+  console.log("POST RECEBIDO");
+
   const {
     dispositivo_id,
     demanda,
@@ -62,6 +63,10 @@ app.post("/api/respostas", (req, res) => {
       });
     }
   );
+});
+
+app.get("/", (req, res) => {
+  res.send("API online");
 });
 
 app.get("/api/resumo", (req, res) => {
@@ -162,6 +167,6 @@ app.get("/api/evolucao", (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
 });
