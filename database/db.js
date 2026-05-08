@@ -1,29 +1,42 @@
-const sqlite3 = require("sqlite3").verbose();
-const path = require("path");
+const { Pool } = require("pg");
+require("dotenv").config();
 
-const dbPath = path.join(__dirname, "psicossocial.db");
-
-const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) {
-    console.error("Erro ao conectar no SQLite:", err.message);
-  } else {
-    console.log("SQLite conectado com sucesso.");
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
   }
 });
 
-db.serialize(() => {
-  db.run(`
-    CREATE TABLE IF NOT EXISTS respostas (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      dispositivo_id TEXT NOT NULL,
-      criado_em TEXT NOT NULL,
-      demanda INTEGER NOT NULL,
-      apoio INTEGER NOT NULL,
-      respeito INTEGER NOT NULL,
-      autonomia INTEGER NOT NULL,
-      equilibrio INTEGER NOT NULL
-    )
-  `);
-});
+pool.connect()
+  .then(() => {
+    console.log("PostgreSQL conectado com sucesso.");
+  })
+  .catch((err) => {
+    console.error("Erro ao conectar no PostgreSQL:", err.message);
+  });
 
-module.exports = db;
+const criarTabela = async () => {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS respostas (
+        id SERIAL PRIMARY KEY,
+        dispositivo_id TEXT NOT NULL,
+        criado_em TIMESTAMP NOT NULL,
+        demanda INTEGER NOT NULL,
+        apoio INTEGER NOT NULL,
+        respeito INTEGER NOT NULL,
+        autonomia INTEGER NOT NULL,
+        equilibrio INTEGER NOT NULL
+      )
+    `);
+
+    console.log("Tabela respostas pronta.");
+  } catch (err) {
+    console.error("Erro ao criar tabela:", err.message);
+  }
+};
+
+criarTabela();
+
+module.exports = pool;

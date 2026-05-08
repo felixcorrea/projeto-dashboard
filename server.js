@@ -10,7 +10,11 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-app.post("/api/respostas", (req, res) => {
+
+// =========================
+// POST - salvar respostas
+// =========================
+app.post("/api/respostas", async (req, res) => {
   console.log("POST RECEBIDO");
 
   const {
@@ -23,13 +27,25 @@ app.post("/api/respostas", (req, res) => {
   } = req.body;
 
   if (!dispositivo_id) {
-    return res.status(400).json({ ok: false, mensagem: "dispositivo_id é obrigatório" });
+    return res.status(400).json({
+      ok: false,
+      mensagem: "dispositivo_id é obrigatório"
+    });
   }
 
-  const campos = [demanda, apoio, respeito, autonomia, equilibrio];
+  const campos = [
+    demanda,
+    apoio,
+    respeito,
+    autonomia,
+    equilibrio
+  ];
 
   const valoresValidos = campos.every(
-    (valor) => Number.isInteger(valor) && valor >= 0 && valor <= 10
+    (valor) =>
+      Number.isInteger(valor) &&
+      valor >= 0 &&
+      valor <= 10
   );
 
   if (!valoresValidos) {
@@ -43,33 +59,59 @@ app.post("/api/respostas", (req, res) => {
 
   const sql = `
     INSERT INTO respostas (
-      dispositivo_id, criado_em, demanda, apoio, respeito, autonomia, equilibrio
-    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+      dispositivo_id,
+      criado_em,
+      demanda,
+      apoio,
+      respeito,
+      autonomia,
+      equilibrio
+    )
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    RETURNING id
   `;
 
-  db.run(
-    sql,
-    [dispositivo_id, criado_em, demanda, apoio, respeito, autonomia, equilibrio],
-    function (err) {
-      if (err) {
-        console.error(err.message);
-        return res.status(500).json({ ok: false, mensagem: "Erro ao salvar resposta" });
-      }
+  try {
+    const result = await db.query(sql, [
+      dispositivo_id,
+      criado_em,
+      demanda,
+      apoio,
+      respeito,
+      autonomia,
+      equilibrio
+    ]);
 
-      res.status(201).json({
-        ok: true,
-        mensagem: "Resposta salva com sucesso",
-        id: this.lastID
-      });
-    }
-  );
+    res.status(201).json({
+      ok: true,
+      mensagem: "Resposta salva com sucesso",
+      id: result.rows[0].id
+    });
+
+  } catch (err) {
+    console.error(err.message);
+
+    res.status(500).json({
+      ok: false,
+      mensagem: "Erro ao salvar resposta"
+    });
+  }
 });
 
+
+// =========================
+// API online
+// =========================
 app.get("/", (req, res) => {
   res.send("API online");
 });
 
-app.get("/api/resumo", (req, res) => {
+
+// =========================
+// Resumo
+// =========================
+app.get("/api/resumo", async (req, res) => {
+
   const sql = `
     SELECT
       COUNT(*) AS total_respostas,
@@ -81,13 +123,13 @@ app.get("/api/resumo", (req, res) => {
     FROM respostas
   `;
 
-  db.get(sql, [], (err, row) => {
-    if (err) {
-      console.error(err.message);
-      return res.status(500).json({ ok: false, mensagem: "Erro ao consultar resumo" });
-    }
+  try {
 
-    const total = row.total_respostas || 0;
+    const result = await db.query(sql);
+
+    const row = result.rows[0];
+
+    const total = Number(row.total_respostas || 0);
 
     const mediaDemanda = Number(row.media_demanda || 0);
     const mediaApoio = Number(row.media_apoio || 0);
@@ -97,7 +139,13 @@ app.get("/api/resumo", (req, res) => {
 
     const indiceGeral =
       total > 0
-        ? (mediaDemanda + mediaApoio + mediaRespeito + mediaAutonomia + mediaEquilibrio) / 5
+        ? (
+            mediaDemanda +
+            mediaApoio +
+            mediaRespeito +
+            mediaAutonomia +
+            mediaEquilibrio
+          ) / 5
         : 0;
 
     res.json({
@@ -112,61 +160,108 @@ app.get("/api/resumo", (req, res) => {
         equilibrio: Number(mediaEquilibrio.toFixed(1))
       }
     });
-  });
+
+  } catch (err) {
+
+    console.error(err.message);
+
+    res.status(500).json({
+      ok: false,
+      mensagem: "Erro ao consultar resumo"
+    });
+  }
 });
 
-app.get("/api/respostas", (req, res) => {
+
+// =========================
+// Últimas respostas
+// =========================
+app.get("/api/respostas", async (req, res) => {
+
   const sql = `
     SELECT *
     FROM respostas
-    ORDER BY datetime(criado_em) DESC
+    ORDER BY criado_em DESC
     LIMIT 50
   `;
 
-  db.all(sql, [], (err, rows) => {
-    if (err) {
-      console.error(err.message);
-      return res.status(500).json({ ok: false, mensagem: "Erro ao listar respostas" });
-    }
+  try {
+
+    const result = await db.query(sql);
 
     res.json({
       ok: true,
-      total: rows.length,
-      respostas: rows
+      total: result.rows.length,
+      respostas: result.rows
     });
-  });
+
+  } catch (err) {
+
+    console.error(err.message);
+
+    res.status(500).json({
+      ok: false,
+      mensagem: "Erro ao listar respostas"
+    });
+  }
 });
 
-app.get("/api/evolucao", (req, res) => {
+
+// =========================
+// Evolução
+// =========================
+app.get("/api/evolucao", async (req, res) => {
+
   const sql = `
     SELECT
-      substr(criado_em, 1, 10) AS data,
+      DATE(criado_em) AS data,
       COUNT(*) AS respostas,
-      AVG((demanda + apoio + respeito + autonomia + equilibrio) / 5.0) AS indice_geral
+      AVG(
+        (
+          demanda +
+          apoio +
+          respeito +
+          autonomia +
+          equilibrio
+        ) / 5.0
+      ) AS indice_geral
     FROM respostas
-    GROUP BY substr(criado_em, 1, 10)
+    GROUP BY DATE(criado_em)
     ORDER BY data ASC
   `;
 
-  db.all(sql, [], (err, rows) => {
-    if (err) {
-      console.error(err.message);
-      return res.status(500).json({ ok: false, mensagem: "Erro ao consultar evolução" });
-    }
+  try {
 
-    const dados = rows.map((item) => ({
+    const result = await db.query(sql);
+
+    const dados = result.rows.map((item) => ({
       data: item.data,
-      respostas: item.respostas,
-      indice_geral: Number(Number(item.indice_geral).toFixed(1))
+      respostas: Number(item.respostas),
+      indice_geral: Number(
+        Number(item.indice_geral).toFixed(1)
+      )
     }));
 
     res.json({
       ok: true,
       pontos: dados
     });
-  });
+
+  } catch (err) {
+
+    console.error(err.message);
+
+    res.status(500).json({
+      ok: false,
+      mensagem: "Erro ao consultar evolução"
+    });
+  }
 });
 
+
+// =========================
+// Inicialização
+// =========================
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
