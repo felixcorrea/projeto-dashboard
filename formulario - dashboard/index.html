@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Dashboard TCC</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <div class="container">
+
+    <aside class="sidebar">
+
+      <h2>TCC Dashboard</h2>
+
+      <nav>
+        <a href="index.html">Dashboard</a>
+        <a href="formulario.html">Novo Registro</a>
+        <a href="login.html" onclick="sair()">Sair</a>
+      </nav>
+
+    </aside>
+<main class="content">
+
+  <header>
+    <h1>Painel de Monitoramento</h1>
+  </header>
+
+  <section class="cards">
+
+    <div class="card">
+      <h3>Total Respostas</h3>
+      <p id="totalRespostas">0</p>
+    </div>
+
+    <div class="card">
+      <h3>Média Geral</h3>
+      <p id="mediaGeral">0</p>
+    </div>
+
+    <div class="card">
+      <h3>Último Dispositivo</h3>
+      <p id="ultimoDispositivo">-</p>
+    </div>
+
+  </section>
+  
+  
+
+  <section class="graficos">
+      
+      
+      <div class="grafico-box">
+  <h2>Média por Categoria</h2>
+
+  <div class="grafico-container">
+    <canvas id="graficoBarras"></canvas>
+  </div>
+</div>
+
+<div class="grafico-box">
+  <h2>Radar de Bem-estar</h2>
+
+  <div class="grafico-container">
+    <canvas id="graficoRadar"></canvas>
+  </div>
+</div>
+      
+      
+      
+      
+      
+      
+      
+
+    
+
+  </section>
+
+  <section class="tabela-box">
+
+    <h2>Últimas Respostas</h2>
+
+    <div class="filtros">
+
+      <input
+        type="text"
+        id="filtroDispositivo"
+        placeholder="Filtrar por dispositivo..."
+      >
+
+    </div>
+
+    <table>
+
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Dispositivo</th>
+          <th>Demanda</th>
+          <th>Apoio</th>
+          <th>Respeito</th>
+          <th>Autonomia</th>
+          <th>Equilíbrio</th>
+        </tr>
+      </thead>
+
+      <tbody id="tabelaRespostas">
+      </tbody>
+
+    </table>
+
+  </section>
+
+</main>
+  </div>
+
+  <script src="dashboard.js"></script>
+
+</body>
+
+</html>

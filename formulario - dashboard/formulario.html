@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Novo Registro</title>
+
+  <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+  <div class="container">
+
+    <aside class="sidebar">
+
+      <h2>Dashboard</h2>
+
+      <nav>
+        <a href="index.html">Dashboard</a>
+        <a href="formulario.html">Avalie aqui</a>
+        <a href="login.html" onclick="sair()">Sair</a>
+      </nav>
+
+    </aside>
+
+    <main class="content">
+
+      <div class="form-container">
+
+        <h1>Avalie seu dia</h1>
+
+        <form id="formulario">
+
+          <div class="form-group">
+            <label>Onde você está? (informe o setor)</label>
+            <input type="text" id="dispositivo_id" required>
+          </div>
+
+          <div class="form-group">
+            <label>Como está a demanda no trabalho?</label>
+            <input type="number" id="demanda" min="0" max="10" required>
+          </div>
+
+          <div class="form-group">
+            <label>De 0 a 10, quanto de apoio você está recebendo?</label>
+            <input type="number" id="apoio" min="0" max="10" required>
+          </div>
+
+          <div class="form-group">
+            <label>De 0 a 10, Como você avalia o respeito no ambiente de trabalho hoje?</label>
+            <input type="number" id="respeito" min="0" max="10" required>
+          </div>
+
+          <div class="form-group">
+            <label>De 0 a 10, Como está a Autonomia que você tem para realizar suas tarefas?</label>
+            <input type="number" id="autonomia" min="0" max="10" required>
+          </div>
+
+          <div class="form-group">
+            <label>De 0 a 10, como você avalia o Equilíbrio hoje?</label>
+            <input type="number" id="equilibrio" min="0" max="10" required>
+          </div>
+          <button type="submit">
+            Enviar Resposta
+          </button>
+
+        </form>
+
+        <p id="mensagem"></p>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <script src="formulario.js"></script>
+
+</body>
+</html>
